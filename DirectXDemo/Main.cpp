@@ -470,6 +470,28 @@ bool InitD3D() {
 
 	device->CreateDepthStencilView(depthStencilBuffer, &depthStencilDesc, dsDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
+	CD3DX12_RESOURCE_DESC cubeUploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
+	// -- Create constant buffer resource heap -- //
+	for (int i = 0; i < frameBufferCount; ++i) {
+		//Create the upload heap and resource
+		hr = device->CreateCommittedResource(
+			&uploadHeapProp,
+			D3D12_HEAP_FLAG_NONE,
+			&cubeUploadBufferDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&constantBufferUploadHeaps[i]));
+		constantBufferUploadHeaps[i]->SetName(L"Constant Buffer Upload Resource Heap");
+
+		ZeroMemory(&cbPerObject, sizeof(cbPerObject));
+		CD3DX12_RANGE readRange(0, 0);
+
+		hr = constantBufferUploadHeaps[i]->Map(0, &readRange, reinterpret_cast<void**>(&cbvGPUAddress[i]));
+
+		memcpy(cbvGPUAddress[i], &cbPerObject, sizeof(cbPerObject)); //cube1 buffer data
+		memcpy(cbvGPUAddress[i] + ConstantBufferPerObjectAlignedSize, &cbPerObject, sizeof(cbPerObject)); //cube2 data but make sure it is aligned
+	}
+
 	// -- Execute command list to upload inital assets -- //
 	commandList->Close();
 	ID3D12CommandList* ppCommandLists[] = { commandList };
