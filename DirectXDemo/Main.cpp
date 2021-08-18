@@ -196,20 +196,13 @@ bool InitD3D() {
 	}
 
 	// -- Create root signature -- //
-	D3D12_DESCRIPTOR_RANGE descriptorTableRanges[1];
-	descriptorTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	descriptorTableRanges[0].NumDescriptors = 1;
-	descriptorTableRanges[0].BaseShaderRegister = 0;
-	descriptorTableRanges[0].RegisterSpace = 0;
-	descriptorTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-	D3D12_ROOT_DESCRIPTOR_TABLE descriptorTable;
-	descriptorTable.NumDescriptorRanges = _countof(descriptorTableRanges);
-	descriptorTable.pDescriptorRanges = &descriptorTableRanges[0];
+	D3D12_ROOT_DESCRIPTOR rootCBVDescriptor;
+	rootCBVDescriptor.RegisterSpace = 0;
+	rootCBVDescriptor.ShaderRegister = 0;
 
 	D3D12_ROOT_PARAMETER rootParameters[1];
-	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameters[0].DescriptorTable = descriptorTable;
+	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[0].Descriptor = rootCBVDescriptor;
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;

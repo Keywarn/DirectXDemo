@@ -68,7 +68,7 @@ ID3D12DescriptorHeap* dsDescriptorHeap;
 int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBufferPerObject) + 255) & ~255;
 ConstantBufferPerObject cbPerObject;
 ID3D12Resource* constantBufferUploadHeaps[frameBufferCount];
-UINT8* constantBufferUploadHeaps[frameBufferCount];
+UINT8* cbvGPUAddress[frameBufferCount];
 
 XMFLOAT4X4 cameraProjMat;
 XMFLOAT4X4 cameraViewMat;
@@ -85,7 +85,7 @@ XMFLOAT4X4 cube2WorldMat;
 XMFLOAT4X4 cube2RotMat;
 XMFLOAT4   cube2Position;
 
-int numCubeIndices
+int numCubeIndices;
 
 //Initialize direct3d
 bool InitD3D();
