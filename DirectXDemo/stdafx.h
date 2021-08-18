@@ -19,8 +19,8 @@ struct Vertex {
 	XMFLOAT4 colour;
 };
 
-struct ConstantBuffer {
-	XMFLOAT4 colourMultiplier;
+struct ConstantBufferPerObject {
+	XMFLOAT4X4 wvpMat;
 };
 
 //Window data
@@ -63,6 +63,29 @@ D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
 ID3D12Resource* depthStencilBuffer;
 ID3D12DescriptorHeap* dsDescriptorHeap;
+
+//3D object values
+int ConstantBufferPerObjectAlignedSize = (sizeof(ConstantBufferPerObject) + 255) & ~255;
+ConstantBufferPerObject cbPerObject;
+ID3D12Resource* constantBufferUploadHeaps[frameBufferCount];
+UINT8* constantBufferUploadHeaps[frameBufferCount];
+
+XMFLOAT4X4 cameraProjMat;
+XMFLOAT4X4 cameraViewMat;
+
+XMFLOAT4 cameraPosition;
+XMFLOAT4 cameraTarget;
+XMFLOAT4 cameraUp;
+
+XMFLOAT4X4 cube1WorldMat;
+XMFLOAT4X4 cube1RotMat;
+XMFLOAT4   cube1Position;
+
+XMFLOAT4X4 cube2WorldMat;
+XMFLOAT4X4 cube2RotMat;
+XMFLOAT4   cube2Position;
+
+int numCubeIndices
 
 //Initialize direct3d
 bool InitD3D();
