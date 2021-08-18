@@ -83,7 +83,7 @@ XMFLOAT4   cube1Position;
 
 XMFLOAT4X4 cube2WorldMat;
 XMFLOAT4X4 cube2RotMat;
-XMFLOAT4   cube2Position;
+XMFLOAT4   cube2PositionOffset;
 
 int numCubeIndices;
 

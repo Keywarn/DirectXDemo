@@ -488,6 +488,7 @@ bool InitD3D() {
 
 		hr = constantBufferUploadHeaps[i]->Map(0, &readRange, reinterpret_cast<void**>(&cbvGPUAddress[i]));
 
+		//One heap but two buffers (one for each cube)
 		memcpy(cbvGPUAddress[i], &cbPerObject, sizeof(cbPerObject)); //cube1 buffer data
 		memcpy(cbvGPUAddress[i] + ConstantBufferPerObjectAlignedSize, &cbPerObject, sizeof(cbPerObject)); //cube2 data but make sure it is aligned
 	}
@@ -527,7 +528,40 @@ bool InitD3D() {
 	scissorRect.top = 0;
 	scissorRect.right = Width;
 	scissorRect.bottom = Height;
+
+	//Build projection and view matrix
+	XMMATRIX tmpMat = XMMatrixPerspectiveFovLH(45.0f * (3.14f / 180.0f), (float)Width / (float)Height, 0.1f, 1000.0f);
+	XMStoreFloat4x4(&cameraProjMat, tmpMat);
+
+	//Camera starting state
+	cameraPosition = XMFLOAT4(0.0f, 2.0f, -4.0f, 0.0f);
+	cameraTarget = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+	cameraUp = XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
+
+	//build view matrix
+	XMVECTOR cPos = XMLoadFloat4(&cameraPosition);
+	XMVECTOR cTarg = XMLoadFloat4(&cameraTarget);
+	XMVECTOR cUp = XMLoadFloat4(&cameraUp);
+	tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
+	XMStoreFloat4x4(&cameraViewMat, tmpMat);
+
+	//Set starting cube positions
+	//First cube
+	cube1Position = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+	XMVECTOR posVec = XMLoadFloat4(&cube1Position);
+
+	tmpMat = XMMatrixTranslationFromVector(posVec);
+	XMStoreFloat4x4(&cube1RotMat, XMMatrixIdentity());
+	XMStoreFloat4x4(&cube1WorldMat, tmpMat);
 	
+	//First cube
+	cube2PositionOffset = XMFLOAT4(1.5f, 0.0f, 0.0f, 0.0f);
+	posVec = XMLoadFloat4(&cube2PositionOffset);
+
+	tmpMat = XMMatrixTranslationFromVector(posVec);
+	XMStoreFloat4x4(&cube2RotMat, XMMatrixIdentity());
+	XMStoreFloat4x4(&cube2WorldMat, tmpMat);
+
 	return true;
 }
 
