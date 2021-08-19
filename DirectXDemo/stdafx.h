@@ -92,6 +92,8 @@ int numCubeIndices;
 ID3D12Resource* textureBuffer;
 ID3D12DescriptorHeap* mainDescriptorHeap;
 ID3D12Resource* textureBufferUploadHeap;
+BYTE* imageData;
+
 
 
 //Initialize direct3d

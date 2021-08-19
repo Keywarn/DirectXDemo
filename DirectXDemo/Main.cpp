@@ -448,8 +448,9 @@ bool InitD3D() {
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
 
+	ID3DBlob* errorBuff;
 	ID3DBlob* signature;
-	hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, nullptr);
+	hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &errorBuff);
 	if (FAILED(hr)) {
 		return false;
 	}
@@ -464,7 +465,6 @@ bool InitD3D() {
 	//Can be compiled at runtime for debugging but needs to be compiled to .cso to improve runtime
 	//Compile vertex shader
 	ID3DBlob* vertexShader;
-	ID3DBlob* errorBuff;
 	hr = D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &vertexShader, &errorBuff);
 	if (FAILED(hr)) {
 		OutputDebugStringA((char*)errorBuff->GetBufferPointer());
@@ -516,6 +516,7 @@ bool InitD3D() {
 
 	hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineStateObject));
 	if (FAILED(hr)) {
+		Running = false;
 		return false;
 	}
 
