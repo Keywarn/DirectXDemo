@@ -468,6 +468,7 @@ bool InitD3D() {
 
 	device->CreateDepthStencilView(depthStencilBuffer, &depthStencilDesc, dsDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
+	// -- Create Cube Data -- //
 	CD3DX12_RESOURCE_DESC cubeUploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
 	// -- Create constant buffer resource heap -- //
 	for (int i = 0; i < frameBufferCount; ++i) {
