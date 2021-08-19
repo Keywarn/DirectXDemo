@@ -11,12 +11,13 @@
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
 #include "d3dx12.h"
+#include <wincodec.h>
 using namespace DirectX;
 
 struct Vertex {
-	Vertex(float x, float y, float z, float r, float g, float b, float a) : pos(x, y, z), colour(r, g, b, z) {}
+	Vertex(float x, float y, float z, float u, float v) : pos(x, y, z), texCoord(u,v) {}
 	XMFLOAT3 pos;
-	XMFLOAT4 colour;
+	XMFLOAT2 texCoord;
 };
 
 struct ConstantBufferPerObject {
@@ -87,6 +88,12 @@ XMFLOAT4   cube2PositionOffset;
 
 int numCubeIndices;
 
+//Texture globals
+ID3D12Resource* textureBuffer;
+ID3D12DescriptorHeap* mainDescriptorHeap;
+ID3D12Resource* textureBufferUploadHeap;
+
+
 //Initialize direct3d
 bool InitD3D();
 //Update game logic
@@ -108,3 +115,7 @@ void mainloop();
 
 //Callback for windows messages
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+int LoadImageDataFromFile(BYTE** imageData, D3D12_RESOURCE_DESC& resourceDescription, LPCWSTR filename, int& bytesPerRow);
+DXGI_FORMAT GetDXGIFormatFromWICFormat(WICPixelFormatGUID& wicFormatGUID);
+WICPixelFormatGUID GetConvertToWICFormat(WICPixelFormatGUID& wicFormatGUID);

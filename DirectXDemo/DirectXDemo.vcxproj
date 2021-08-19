@@ -147,7 +147,9 @@
     </Link>
     <PostBuildEvent>
       <Command> copy "$(ProjectDir)*.hlsl" "$(OutDir)"
-echo Copied shaders</Command>
+echo Copied shaders
+ copy "$(ProjectDir)*.jpg" "$(OutDir)"
+echo Copied Images</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
