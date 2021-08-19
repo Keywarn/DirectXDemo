@@ -174,7 +174,7 @@ bool InitD3D() {
 	}
 
 	//-- Create Command List -- //
-	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator[0], NULL, IID_PPV_ARGS(&commandList));
+	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator[frameIndex], NULL, IID_PPV_ARGS(&commandList));
 	if (FAILED(hr)) {
 		return false;
 	}
@@ -224,6 +224,10 @@ bool InitD3D() {
 	}
 
 	hr = device->CreateRootSignature(0, signature->GetBufferPointer(), signature -> GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+	if (FAILED(hr))
+	{
+		return false;
+	}
 
 	// -- Create vertex and pixel shaders -- //
 	//Can be compiled at runtime for debugging but needs to be compiled to .cso to improve runtime
@@ -277,7 +281,6 @@ bool InitD3D() {
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.NumRenderTargets = 1;
 	//Depth buffer stuff for pipeline
-    psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
 	hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineStateObject));
@@ -461,11 +464,6 @@ bool InitD3D() {
 		&depthOptimizedClearValue,
 		IID_PPV_ARGS(&depthStencilBuffer)
 	);
-	hr = device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsDescriptorHeap));
-	if (FAILED(hr))
-	{
-		Running = false;
-	}
 	dsDescriptorHeap->SetName(L"Depth/Stencil Resource Heap");
 
 	device->CreateDepthStencilView(depthStencilBuffer, &depthStencilDesc, dsDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
@@ -554,9 +552,9 @@ bool InitD3D() {
 	XMStoreFloat4x4(&cube1RotMat, XMMatrixIdentity());
 	XMStoreFloat4x4(&cube1WorldMat, tmpMat);
 	
-	//First cube
+	//Second cube
 	cube2PositionOffset = XMFLOAT4(1.5f, 0.0f, 0.0f, 0.0f);
-	posVec = XMLoadFloat4(&cube2PositionOffset);
+	posVec = XMLoadFloat4(&cube2PositionOffset) + XMLoadFloat4(&cube1Position);
 
 	tmpMat = XMMatrixTranslationFromVector(posVec);
 	XMStoreFloat4x4(&cube2RotMat, XMMatrixIdentity());
