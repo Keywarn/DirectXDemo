@@ -1062,6 +1062,8 @@ void UpdatePipeline() {
 
 	commandList->SetGraphicsRootSignature(rootSignature);
 
+	ID3D12DescriptorHeap* descriptorHeaps[] = { mainDescriptorHeap };
+	commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 	commandList->SetGraphicsRootDescriptorTable(1, mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
 	//Draw Triangle
