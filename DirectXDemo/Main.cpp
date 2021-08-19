@@ -435,6 +435,7 @@ bool InitD3D() {
 	sampler.ShaderRegister = 0;
 	sampler.RegisterSpace = 0;
 	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
 	rootSignatureDesc.Init(
 		_countof(rootParameters),
@@ -729,6 +730,40 @@ bool InitD3D() {
 	BYTE* imageData;
 	int imageSize = LoadImageDataFromFile(&imageData, textureDesc, L"texture.jpg", imageBytesPerRow);
 
+	if (imageSize <= 0) {
+		Running = false;
+		return false;
+	}
+
+	hr = device->CreateCommittedResource(
+		&defaultHeapProp,
+		D3D12_HEAP_FLAG_NONE,
+		&textureDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&textureBuffer));
+	if (FAILED(hr)) {
+		Running = false;
+		return false;
+	}
+	textureBuffer->SetName(L"Texture Buffer Resource Heap");
+
+	//Create upload heap for texture
+	UINT64 textureUploadBufferSize;
+	device->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &textureUploadBufferSize);
+	CD3DX12_RESOURCE_DESC texUploadHeapBuffer = CD3DX12_RESOURCE_DESC::Buffer(textureUploadBufferSize);
+	hr = device->CreateCommittedResource(
+		&uploadHeapProp,
+		D3D12_HEAP_FLAG_NONE,
+		&texUploadHeapBuffer,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&textureBufferUploadHeap));
+	if (FAILED(hr)) {
+		Running = false;
+		return false;
+	}
+	textureBufferUploadHeap->SetName(L"Texture Buffer Upload Resource Heap");
 
 	// -- Execute command list to upload inital assets -- //
 	commandList->Close();
