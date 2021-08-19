@@ -8,11 +8,15 @@ struct VS_OUTPUT {
 	float4 colour: COLOUR;
 };
 
+cbuffer ConstantBuffer : register(b0) {
+	float4x4 wvpMat;
+}
+
 
 VS_OUTPUT main( VS_INPUT input)
 {
 	VS_OUTPUT output;
-	output.pos = float4(input.pos, 1.0f);
+	output.pos = mul(input.pos, wvpMat);
 	output.colour = input.colour;
 	return output;
 }

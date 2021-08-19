@@ -716,7 +716,7 @@ void Update() {
 	XMMATRIX scaleMat = XMMatrixScaling(0.5f, 0.5f, 0.5f);
 
 	//Scale first, then translate, rotate, move to cube1 to make it seem as if it is orbitting
-	worldMat = scaleMat + translationOffsetMat * rotMat * translationMat;
+	worldMat = scaleMat * translationOffsetMat * rotMat * translationMat;
 	wvpMat = XMLoadFloat4x4(&cube2WorldMat) * viewMat * projMat;
 	transposed = XMMatrixTranspose(wvpMat);
 	XMStoreFloat4x4(&cube2WorldMat, worldMat);
