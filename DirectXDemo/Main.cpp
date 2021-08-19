@@ -644,6 +644,7 @@ void Cleanup() {
 		SAFE_RELEASE(commandAllocator[i]);
 		SAFE_RELEASE(fence[i]);
 
+		SAFE_RELEASE(constantBufferUploadHeaps[i]);
 	}
 
 	SAFE_RELEASE(pipelineStateObject);
@@ -677,6 +678,51 @@ void mainloop() {
 
 //Update game/app logic
 void Update() {
+	//Create rotation matrices
+	XMMATRIX rotXMat = XMMatrixRotationX(0.0001f);
+	XMMATRIX rotYMat = XMMatrixRotationY(0.0002f);
+	XMMATRIX rotZMat = XMMatrixRotationZ(0.0003f);
+
+	//Rotate cube 1
+	XMMATRIX rotMat = XMLoadFloat4x4(&cube1RotMat) * rotXMat * rotYMat * rotZMat;
+	XMStoreFloat4x4(&cube1RotMat, rotMat);
+	//Translation for cube1
+	XMMATRIX translationMat = XMMatrixTranslationFromVector(XMLoadFloat4(&cube1Position));
+	//Cube1 world matrix, rotate then translate
+	XMMATRIX worldMat = rotMat * translationMat;
+	XMStoreFloat4x4(&cube1WorldMat, worldMat);
+
+	//Update buffer for cube1, create wvp and store
+	XMMATRIX viewMat = XMLoadFloat4x4(&cameraViewMat);
+	XMMATRIX projMat = XMLoadFloat4x4(&cameraProjMat);
+	XMMATRIX wvpMat = XMLoadFloat4x4(&cube1WorldMat) * viewMat * projMat;
+	XMMATRIX transposed = XMMatrixTranspose(wvpMat); // Transpose for GPU memory layout
+	XMStoreFloat4x4(&cbPerObject.wvpMat, transposed);
+
+	memcpy(cbvGPUAddress[frameIndex], &cbPerObject, sizeof(cbPerObject));
+
+	//Cube 2
+	rotXMat = XMMatrixRotationX(0.0003f);
+	rotYMat = XMMatrixRotationY(0.0002f);
+	rotZMat = XMMatrixRotationZ(0.0001f);
+
+	rotMat = rotZMat * (XMLoadFloat4x4(&cube2RotMat) * (rotXMat * rotYMat));
+	XMStoreFloat4x4(&cube2RotMat, rotMat);
+
+	//offset position from cube1
+	XMMATRIX translationOffsetMat = XMMatrixTranslationFromVector(XMLoadFloat4(&cube2PositionOffset));
+
+	//Half the size
+	XMMATRIX scaleMat = XMMatrixScaling(0.5f, 0.5f, 0.5f);
+
+	//Scale first, then translate, rotate, move to cube1 to make it seem as if it is orbitting
+	worldMat = scaleMat + translationOffsetMat * rotMat * translationMat;
+	wvpMat = XMLoadFloat4x4(&cube2WorldMat) * viewMat * projMat;
+	transposed = XMMatrixTranspose(wvpMat);
+	XMStoreFloat4x4(&cube2WorldMat, worldMat);
+	XMStoreFloat4x4(&cbPerObject.wvpMat, transposed);
+
+	memcpy(cbvGPUAddress[frameIndex] + ConstantBufferPerObjectAlignedSize, &cbPerObject, sizeof(cbPerObject));
 
 }
 
@@ -719,8 +765,15 @@ void UpdatePipeline() {
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
 	commandList->IASetIndexBuffer(&indexBufferView);
-	commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);  //Draw first quad
-	commandList->DrawIndexedInstanced(6, 1, 0, 4, 0); //Draw second quad with offset
+
+	//Cube1
+	commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeaps[frameIndex]->GetGPUVirtualAddress());
+	commandList->DrawIndexedInstanced(numCubeIndices, 1, 0, 0, 0);
+
+	//Cube2
+	commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeaps[frameIndex]->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize);
+	commandList->DrawIndexedInstanced(numCubeIndices, 1, 0, 0, 0);
+
 
 	barrier = CD3DX12_RESOURCE_BARRIER::Transition(renderTargets[frameIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 	commandList->ResourceBarrier(1, &barrier);
