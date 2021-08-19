@@ -398,6 +398,7 @@ bool InitD3D() {
 
 	int iBufferSize = sizeof(iList);
 
+	numCubeIndices = sizeof(iList) / sizeof(DWORD);
 	//Create default heap, memory on GPU
 	//Only accessible by GPU, to add data, upload using upload heap
 	const CD3DX12_RESOURCE_DESC iHeapDesc = CD3DX12_RESOURCE_DESC::Buffer(iBufferSize);
