@@ -765,6 +765,15 @@ bool InitD3D() {
 	}
 	textureBufferUploadHeap->SetName(L"Texture Buffer Upload Resource Heap");
 
+	//Store texture in the upload buffer to be added onto the heap
+	D3D12_SUBRESOURCE_DATA textureData = {};
+	textureData.pData = &imageData[0];
+	textureData.RowPitch = imageBytesPerRow;
+	textureData.SlicePitch = imageBytesPerRow * textureDesc.Height;
+	CD3DX12_RESOURCE_BARRIER textureBarrier = CD3DX12_RESOURCE_BARRIER::Transition(textureBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	UpdateSubresources(commandList, textureBuffer, textureBufferUploadHeap, 0, 0, 1, &textureData);
+	commandList->ResourceBarrier(1, &textureBarrier);
+
 	// -- Execute command list to upload inital assets -- //
 	commandList->Close();
 	ID3D12CommandList* ppCommandLists[] = { commandList };
