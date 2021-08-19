@@ -1061,6 +1061,8 @@ void UpdatePipeline() {
 
 	commandList->SetGraphicsRootSignature(rootSignature);
 
+	commandList->SetGraphicsRootDescriptorTable(1, mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
 	//Draw Triangle
 	commandList->RSSetViewports(1, &viewport);
 	commandList->RSSetScissorRects(1, &scissorRect);
