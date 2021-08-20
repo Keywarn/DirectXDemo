@@ -198,7 +198,7 @@ int LoadImageDataFromFile(BYTE** imageData, D3D12_RESOURCE_DESC& resourceDescrip
 
 	//If unkown format, convert and flag converted
 	if (dxgiFormat == DXGI_FORMAT_UNKNOWN) {
-		
+
 		WICPixelFormatGUID convertToPixelFormat = GetConvertToWICFormat(pixelFormat);
 
 		if (convertToPixelFormat == GUID_WICPixelFormatDontCare) return 0;
@@ -454,7 +454,7 @@ bool InitD3D() {
 		return false;
 	}
 
-	hr = device->CreateRootSignature(0, signature->GetBufferPointer(), signature -> GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+	hr = device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 	if (FAILED(hr))
 	{
 		return false;
@@ -504,7 +504,7 @@ bool InitD3D() {
 	psoDesc.VS = vertexShaderBytecode;
 	psoDesc.PS = pixelShaderBytecode;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;	
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	psoDesc.SampleDesc = sampleDesc;
 	psoDesc.SampleMask = 0xffffffff;
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -558,7 +558,7 @@ bool InitD3D() {
 		{  0.5f, -0.5f, -0.5f, 0.0f, 1.0f },
 		{ -0.5f, -0.5f,  0.5f, 1.0f, 0.0f },
 	};
-	
+
 	// -- Create Vertex and Index Buffer -- //
 
 	int vBufferSize = sizeof(vList);
@@ -599,7 +599,7 @@ bool InitD3D() {
 	UpdateSubresources(commandList, vertexBuffer, vBufferUploadHeap, 0, 0, 1, &vertexData);
 	const CD3DX12_RESOURCE_BARRIER vBufferBarrier = CD3DX12_RESOURCE_BARRIER::Transition(vertexBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 	commandList->ResourceBarrier(1, &vBufferBarrier);
-	
+
 	// -- Create index buffer -- //
 	DWORD iList[] = {
 		// front face
@@ -783,7 +783,7 @@ bool InitD3D() {
 	if (FAILED(hr)) {
 		Running = false;
 	}
-	
+
 	//Shader Resource View (points to texture and describe it)
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -855,7 +855,7 @@ bool InitD3D() {
 	tmpMat = XMMatrixTranslationFromVector(posVec);
 	XMStoreFloat4x4(&cube1RotMat, XMMatrixIdentity());
 	XMStoreFloat4x4(&cube1WorldMat, tmpMat);
-	
+
 	//Second cube
 	cube2PositionOffset = XMFLOAT4(1.5f, 0.0f, 0.0f, 0.0f);
 	posVec = XMLoadFloat4(&cube2PositionOffset) + XMLoadFloat4(&cube1Position);
@@ -972,18 +972,20 @@ void mainloop() {
 		}
 		else {
 			//Run Code
-			Update();
+			//Get time and pass it to the next frame
+			double delta = timer.GetFrameDelta();
+			Update(delta);
 			Render();
 		}
 	}
 }
 
 //Update game/app logic
-void Update() {
+void Update(double delta) {
 	//Create rotation matrices
-	XMMATRIX rotXMat = XMMatrixRotationX(0.0001f);
-	XMMATRIX rotYMat = XMMatrixRotationY(0.0002f);
-	XMMATRIX rotZMat = XMMatrixRotationZ(0.0003f);
+	XMMATRIX rotXMat = XMMatrixRotationX(0.0001f * delta);
+	XMMATRIX rotYMat = XMMatrixRotationY(0.0002f * delta);
+	XMMATRIX rotZMat = XMMatrixRotationZ(0.0003f * delta);
 
 	//Rotate cube 1
 	XMMATRIX rotMat = XMLoadFloat4x4(&cube1RotMat) * rotXMat * rotYMat * rotZMat;
@@ -1004,9 +1006,9 @@ void Update() {
 	memcpy(cbvGPUAddress[frameIndex], &cbPerObject, sizeof(cbPerObject));
 
 	//Cube 2
-	rotXMat = XMMatrixRotationX(0.0003f);
-	rotYMat = XMMatrixRotationY(0.0002f);
-	rotZMat = XMMatrixRotationZ(0.0001f);
+	rotXMat = XMMatrixRotationX(0.0003f * delta);
+	rotYMat = XMMatrixRotationY(0.0002f * delta);
+	rotZMat = XMMatrixRotationZ(0.0001f * delta);
 
 	rotMat = rotZMat * (XMLoadFloat4x4(&cube2RotMat) * (rotXMat * rotYMat));
 	XMStoreFloat4x4(&cube2RotMat, rotMat);
