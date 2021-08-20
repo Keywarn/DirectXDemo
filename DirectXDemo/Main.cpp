@@ -972,19 +972,19 @@ void mainloop() {
 				break;
 			if (msg.message == WM_KEYDOWN) {
 				if (msg.wParam == VK_UP) {
-					cameraPosition.z += 1;
+					cameraMoves.z += 1;
 					dirtyCamera = true;
 				}
 				if (msg.wParam == VK_DOWN) {
-					cameraPosition.z -= 1;
+					cameraMoves.z -= 1;
 					dirtyCamera = true;
 				}
 				if (msg.wParam == VK_LEFT){
-					cameraPosition.x -= 1;
+					cameraMoves.x -= 1;
 					dirtyCamera = true;
 				}
 				if (msg.wParam == VK_RIGHT){
-					cameraPosition.x += 1;
+					cameraMoves.x += 1;
 					dirtyCamera = true;
 				}
 				//fHandled = true;
@@ -1007,6 +1007,8 @@ void mainloop() {
 void Update(double delta, bool dirtyCamera) {
 	if (dirtyCamera) {
 		//Update Camera data
+		cameraPosition = XMFLOAT4( cameraPosition.x + cameraMoves.x*cameraMoveSpeed*delta, cameraPosition.y + cameraMoves.y * cameraMoveSpeed * delta, cameraPosition.z + cameraMoves.z * cameraMoveSpeed * delta, 0.0f );
+		cameraMoves = XMFLOAT4();
 		XMVECTOR cPos = XMLoadFloat4(&cameraPosition);
 		XMVECTOR cTarg = XMLoadFloat4(&cameraTarget);
 		XMVECTOR cUp = XMLoadFloat4(&cameraUp);
