@@ -111,8 +111,8 @@ XMFLOAT4X4 cube2WorldMat;
 XMFLOAT4X4 cube2RotMat;
 XMFLOAT4   cube2PositionOffset;
 
-float cameraMoveSpeed = 0.5;
-XMFLOAT3 cameraMoves;
+float cameraMoveSpeed = 0.3;
+
 
 int numCubeIndices;
 
@@ -130,7 +130,7 @@ Timer timer;
 //Initialize direct3d
 bool InitD3D();
 //Update game logic
-void Update(double delta, bool dirtyCamera);
+void Update(double delta, XMFLOAT3 cameraMoves, bool dirtyCamera, bool lookAt);
 //Update direct3d pipeline (update command lists)
 void UpdatePipeline();
 //Execute command list

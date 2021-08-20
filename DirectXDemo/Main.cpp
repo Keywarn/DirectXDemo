@@ -962,6 +962,8 @@ void mainloop() {
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
 	bool dirtyCamera = false;
+	bool lookAt = false;
+	XMFLOAT3 cameraMoves;
 
 	while (Running) {
 		
@@ -995,6 +997,10 @@ void mainloop() {
 					cameraMoves.y += 1;
 					dirtyCamera = true;
 				}
+				if (msg.wParam == VK_CONTROL) {
+					lookAt = !lookAt;
+					dirtyCamera = true;
+				}
 				//fHandled = true;
 			}
 			TranslateMessage(&msg);
@@ -1004,15 +1010,17 @@ void mainloop() {
 			//Run Code
 			//Get time and pass it to the next frame
 			double delta = timer.GetFrameDelta();
-			Update(delta, dirtyCamera);
+			Update(delta, cameraMoves, dirtyCamera, lookAt);
+			//Clear update data
 			dirtyCamera = false;
+			cameraMoves = XMFLOAT3();
 			Render();
 		}
 	}
 }
 
 //Update game/app logic
-void Update(double delta, bool dirtyCamera) {
+void Update(double delta, XMFLOAT3 cameraMoves, bool dirtyCamera, bool lookAt) {
 	if (dirtyCamera) {
 		//Update Camera data
 		//Modify moves to represent the speed and delta
@@ -1024,9 +1032,13 @@ void Update(double delta, bool dirtyCamera) {
 		XMFLOAT3 comboMove = XMFLOAT3(xMove.x + yMove.x + zMove.x, xMove.y + yMove.y + zMove.y, xMove.z + yMove.z + zMove.z);
 		//Update the position
 		cameraPosition = XMFLOAT4(cameraPosition.x + comboMove.x , cameraPosition.y + comboMove.y, cameraPosition.z + comboMove.z, 0.0f);
-		cameraMoves = XMFLOAT3();
 		XMVECTOR cPos = XMLoadFloat4(&cameraPosition);
-		XMVECTOR cTarg = XMLoadFloat4(&cameraTarget);
+		//Only Update look at when told
+		XMFLOAT4 tempTargFloat = XMFLOAT4(cameraPosition.x + cameraViewMat(0, 2), cameraPosition.y + cameraViewMat(1, 2), cameraPosition.z + cameraViewMat(2, 2), 0.0f);
+		XMVECTOR cTarg = XMLoadFloat4(&tempTargFloat);
+		if (lookAt) {
+			cTarg = XMLoadFloat4(&cameraTarget);
+		}
 		XMVECTOR cUp = XMLoadFloat4(&cameraUp);
 		XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
 		XMStoreFloat4x4(&cameraViewMat, tmpMat);
