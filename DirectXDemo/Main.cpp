@@ -975,12 +975,22 @@ void mainloop() {
 					cameraPosition.z += 1;
 					dirtyCamera = true;
 				}
-				fHandled = true;
+				if (msg.wParam == VK_DOWN) {
+					cameraPosition.z -= 1;
+					dirtyCamera = true;
+				}
+				if (msg.wParam == VK_LEFT){
+					cameraPosition.x -= 1;
+					dirtyCamera = true;
+				}
+				if (msg.wParam == VK_RIGHT){
+					cameraPosition.x += 1;
+					dirtyCamera = true;
+				}
+				//fHandled = true;
 			}
-			if (!fHandled) {
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
 		else {
 			//Run Code
