@@ -961,16 +961,19 @@ void Cleanup() {
 void mainloop() {
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
+	bool dirtyCamera = false;
 
 	while (Running) {
+		
 		//Exit the window
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 			bool fHandled = false;
 			if (msg.message == WM_QUIT)
 				break;
 			if (msg.message == WM_KEYDOWN) {
-				if (msg.wParam = VK_UP) {
+				if (msg.wParam == VK_UP) {
 					cameraPosition.z += 1;
+					dirtyCamera = true;
 				}
 				fHandled = true;
 			}
@@ -983,20 +986,23 @@ void mainloop() {
 			//Run Code
 			//Get time and pass it to the next frame
 			double delta = timer.GetFrameDelta();
-			Update(delta);
+			Update(delta, dirtyCamera);
+			dirtyCamera = false;
 			Render();
 		}
 	}
 }
 
 //Update game/app logic
-void Update(double delta) {
-	//Update Camera data
-	XMVECTOR cPos = XMLoadFloat4(&cameraPosition);
-	XMVECTOR cTarg = XMLoadFloat4(&cameraTarget);
-	XMVECTOR cUp = XMLoadFloat4(&cameraUp);
-	XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
-	XMStoreFloat4x4(&cameraViewMat, tmpMat);
+void Update(double delta, bool dirtyCamera) {
+	if (dirtyCamera) {
+		//Update Camera data
+		XMVECTOR cPos = XMLoadFloat4(&cameraPosition);
+		XMVECTOR cTarg = XMLoadFloat4(&cameraTarget);
+		XMVECTOR cUp = XMLoadFloat4(&cameraUp);
+		XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
+		XMStoreFloat4x4(&cameraViewMat, tmpMat);
+	}
 
 	//Create rotation matrices
 	XMMATRIX rotXMat = XMMatrixRotationX(0.0001f * delta);

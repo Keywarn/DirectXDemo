@@ -127,7 +127,7 @@ Timer timer;
 //Initialize direct3d
 bool InitD3D();
 //Update game logic
-void Update(double delta);
+void Update(double delta, bool dirtyCamera);
 //Update direct3d pipeline (update command lists)
 void UpdatePipeline();
 //Execute command list
