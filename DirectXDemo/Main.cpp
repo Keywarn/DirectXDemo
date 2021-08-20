@@ -965,10 +965,19 @@ void mainloop() {
 	while (Running) {
 		//Exit the window
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+			bool fHandled = false;
 			if (msg.message == WM_QUIT)
 				break;
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			if (msg.message == WM_KEYDOWN) {
+				if (msg.wParam = VK_UP) {
+					cameraPosition.z += 1;
+				}
+				fHandled = true;
+			}
+			if (!fHandled) {
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
 		}
 		else {
 			//Run Code
@@ -982,6 +991,13 @@ void mainloop() {
 
 //Update game/app logic
 void Update(double delta) {
+	//Update Camera data
+	XMVECTOR cPos = XMLoadFloat4(&cameraPosition);
+	XMVECTOR cTarg = XMLoadFloat4(&cameraTarget);
+	XMVECTOR cUp = XMLoadFloat4(&cameraUp);
+	XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
+	XMStoreFloat4x4(&cameraViewMat, tmpMat);
+
 	//Create rotation matrices
 	XMMATRIX rotXMat = XMMatrixRotationX(0.0001f * delta);
 	XMMATRIX rotYMat = XMMatrixRotationY(0.0002f * delta);
