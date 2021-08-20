@@ -1,30 +1,5 @@
 #include "stdafx.h"
 
-struct Timer {
-	double timerFrequency = 0.f;
-	long long lastFrameTime = 0;
-	long long lastSecond = 0;
-	double frameDelta = 0;
-
-	Timer() {
-		LARGE_INTEGER li;
-		QueryPerformanceFrequency(&li);
-
-		timerFrequency = double(li.QuadPart) / 1000.0;
-
-		QueryPerformanceCounter(&li);
-		lastFrameTime = li.QuadPart;
-	}
-
-	double GetFrameDelta() {
-		LARGE_INTEGER li;
-		QueryPerformanceCounter(&li);
-		frameDelta = double(li.QuadPart - lastFrameTime) / timerFrequency;
-		lastFrameTime = li.QuadPart;
-		return frameDelta;
-	}
-};
-
 bool InitializeWindow(HINSTANCE hInstance, int ShowWnd, bool fullscreen) {
 	if (fullscreen) {
 		HMONITOR hmon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
@@ -997,14 +972,16 @@ void mainloop() {
 		}
 		else {
 			//Run Code
-			Update();
+			//Get time and pass it to the next frame
+			double delta = timer.GetFrameDelta();
+			Update(delta);
 			Render();
 		}
 	}
 }
 
 //Update game/app logic
-void Update() {
+void Update(double delta) {
 	//Create rotation matrices
 	XMMATRIX rotXMat = XMMatrixRotationX(0.0001f);
 	XMMATRIX rotYMat = XMMatrixRotationY(0.0002f);
