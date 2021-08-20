@@ -983,9 +983,9 @@ void mainloop() {
 //Update game/app logic
 void Update(double delta) {
 	//Create rotation matrices
-	XMMATRIX rotXMat = XMMatrixRotationX(0.0001f);
-	XMMATRIX rotYMat = XMMatrixRotationY(0.0002f);
-	XMMATRIX rotZMat = XMMatrixRotationZ(0.0003f);
+	XMMATRIX rotXMat = XMMatrixRotationX(0.0001f * delta);
+	XMMATRIX rotYMat = XMMatrixRotationY(0.0002f * delta);
+	XMMATRIX rotZMat = XMMatrixRotationZ(0.0003f * delta);
 
 	//Rotate cube 1
 	XMMATRIX rotMat = XMLoadFloat4x4(&cube1RotMat) * rotXMat * rotYMat * rotZMat;
@@ -1006,9 +1006,9 @@ void Update(double delta) {
 	memcpy(cbvGPUAddress[frameIndex], &cbPerObject, sizeof(cbPerObject));
 
 	//Cube 2
-	rotXMat = XMMatrixRotationX(0.0003f);
-	rotYMat = XMMatrixRotationY(0.0002f);
-	rotZMat = XMMatrixRotationZ(0.0001f);
+	rotXMat = XMMatrixRotationX(0.0003f * delta);
+	rotYMat = XMMatrixRotationY(0.0002f * delta);
+	rotZMat = XMMatrixRotationZ(0.0001f * delta);
 
 	rotMat = rotZMat * (XMLoadFloat4x4(&cube2RotMat) * (rotXMat * rotYMat));
 	XMStoreFloat4x4(&cube2RotMat, rotMat);
