@@ -987,6 +987,14 @@ void mainloop() {
 					cameraMoves.x += 1;
 					dirtyCamera = true;
 				}
+				if (msg.wParam == VK_SHIFT) {
+					cameraMoves.y -= 1;
+					dirtyCamera = true;
+				}
+				if (msg.wParam == VK_SPACE) {
+					cameraMoves.y += 1;
+					dirtyCamera = true;
+				}
 				//fHandled = true;
 			}
 			TranslateMessage(&msg);
@@ -1007,8 +1015,16 @@ void mainloop() {
 void Update(double delta, bool dirtyCamera) {
 	if (dirtyCamera) {
 		//Update Camera data
-		cameraPosition = XMFLOAT4( cameraPosition.x + cameraMoves.x*cameraMoveSpeed*delta, cameraPosition.y + cameraMoves.y * cameraMoveSpeed * delta, cameraPosition.z + cameraMoves.z * cameraMoveSpeed * delta, 0.0f );
-		cameraMoves = XMFLOAT4();
+		//Modify moves to represent the speed and delta
+		cameraMoves = XMFLOAT3(cameraMoves.x * delta * cameraMoveSpeed, cameraMoves.y * delta * cameraMoveSpeed, cameraMoves.z * delta * cameraMoveSpeed);
+		XMFLOAT3 xMove = XMFLOAT3(cameraViewMat(0, 0) * cameraMoves.x, cameraViewMat(1, 0) * cameraMoves.x, cameraViewMat(2, 0) * cameraMoves.x);
+		XMFLOAT3 yMove = XMFLOAT3(cameraViewMat(0, 1) * cameraMoves.y, cameraViewMat(1, 1) * cameraMoves.y, cameraViewMat(2, 1) * cameraMoves.y);
+		XMFLOAT3 zMove = XMFLOAT3(cameraViewMat(0, 2) * cameraMoves.z, cameraViewMat(1, 2) * cameraMoves.z, cameraViewMat(2, 2) * cameraMoves.z);
+
+		XMFLOAT3 comboMove = XMFLOAT3(xMove.x + yMove.x + zMove.x, xMove.y + yMove.y + zMove.y, xMove.z + yMove.z + zMove.z);
+		//Update the position
+		cameraPosition = XMFLOAT4(cameraPosition.x + comboMove.x , cameraPosition.y + comboMove.y, cameraPosition.z + comboMove.z, 0.0f);
+		cameraMoves = XMFLOAT3();
 		XMVECTOR cPos = XMLoadFloat4(&cameraPosition);
 		XMVECTOR cTarg = XMLoadFloat4(&cameraTarget);
 		XMVECTOR cUp = XMLoadFloat4(&cameraUp);

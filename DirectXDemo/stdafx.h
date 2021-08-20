@@ -112,7 +112,7 @@ XMFLOAT4X4 cube2RotMat;
 XMFLOAT4   cube2PositionOffset;
 
 float cameraMoveSpeed = 0.5;
-XMFLOAT4 cameraMoves;
+XMFLOAT3 cameraMoves;
 
 int numCubeIndices;
 
