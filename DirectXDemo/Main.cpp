@@ -972,20 +972,18 @@ void mainloop() {
 		}
 		else {
 			//Run Code
-			//Get time and pass it to the next frame
-			double delta = timer.GetFrameDelta();
-			Update(delta);
+			Update();
 			Render();
 		}
 	}
 }
 
 //Update game/app logic
-void Update(double delta) {
+void Update() {
 	//Create rotation matrices
-	XMMATRIX rotXMat = XMMatrixRotationX(0.0001f * delta);
-	XMMATRIX rotYMat = XMMatrixRotationY(0.0002f * delta);
-	XMMATRIX rotZMat = XMMatrixRotationZ(0.0003f * delta);
+	XMMATRIX rotXMat = XMMatrixRotationX(0.0001f);
+	XMMATRIX rotYMat = XMMatrixRotationY(0.0002f);
+	XMMATRIX rotZMat = XMMatrixRotationZ(0.0003f);
 
 	//Rotate cube 1
 	XMMATRIX rotMat = XMLoadFloat4x4(&cube1RotMat) * rotXMat * rotYMat * rotZMat;
@@ -1006,9 +1004,9 @@ void Update(double delta) {
 	memcpy(cbvGPUAddress[frameIndex], &cbPerObject, sizeof(cbPerObject));
 
 	//Cube 2
-	rotXMat = XMMatrixRotationX(0.0003f * delta);
-	rotYMat = XMMatrixRotationY(0.0002f * delta);
-	rotZMat = XMMatrixRotationZ(0.0001f * delta);
+	rotXMat = XMMatrixRotationX(0.0003f);
+	rotYMat = XMMatrixRotationY(0.0002f);
+	rotZMat = XMMatrixRotationZ(0.0001f);
 
 	rotMat = rotZMat * (XMLoadFloat4x4(&cube2RotMat) * (rotXMat * rotYMat));
 	XMStoreFloat4x4(&cube2RotMat, rotMat);
