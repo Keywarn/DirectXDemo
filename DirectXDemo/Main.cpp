@@ -398,12 +398,18 @@ bool InitD3D() {
 	rootCBVDescriptor.ShaderRegister = 0;
 
 	//Create descriptor range to hold the descriptor table
-	D3D12_DESCRIPTOR_RANGE descriptorTableRanges[1];
+	D3D12_DESCRIPTOR_RANGE descriptorTableRanges[2];
 	descriptorTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	descriptorTableRanges[0].NumDescriptors = 1;
 	descriptorTableRanges[0].BaseShaderRegister = 0;
 	descriptorTableRanges[0].RegisterSpace = 0;
 	descriptorTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	descriptorTableRanges[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorTableRanges[1].NumDescriptors = 1;
+	descriptorTableRanges[1].BaseShaderRegister = 0;
+	descriptorTableRanges[1].RegisterSpace = 1;
+	descriptorTableRanges[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	//Create a descriptor table
 	D3D12_ROOT_DESCRIPTOR_TABLE descriptorTable;
