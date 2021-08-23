@@ -410,49 +410,6 @@ bool InitD3D() {
 	D3D12_ROOT_DESCRIPTOR_TABLE descriptorTable;
 	descriptorTable.NumDescriptorRanges = _countof(descriptorTableRanges);
 	descriptorTable.pDescriptorRanges = &descriptorTableRanges[0];
-	
-	// second table
-	D3D12_DESCRIPTOR_RANGE secondTableRanges[1];
-	secondTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	secondTableRanges[0].NumDescriptors = 1;
-	secondTableRanges[0].BaseShaderRegister = 0;
-	secondTableRanges[0].RegisterSpace = 1;
-	secondTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-	//Create a descriptor table
-	D3D12_ROOT_DESCRIPTOR_TABLE secondTable;
-	secondTable.NumDescriptorRanges = _countof(secondTableRanges);
-	secondTable.pDescriptorRanges = &secondTableRanges[0];
-
-	D3D12_ROOT_PARAMETER rootParameters[3];
-	//Parameter for the constant buffer
-	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParameters[0].Descriptor = rootCBVDescriptor;
-	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
-	//Parameter for descriptor table
-	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameters[1].DescriptorTable = descriptorTable;
-	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-	//Parameter for second descriptor table
-	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameters[2].DescriptorTable = secondTable;
-	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
-	//Create static sampler
-	D3D12_STATIC_SAMPLER_DESC sampler = {};
-	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-	sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-	sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-	sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-	sampler.MipLODBias = 0;
-	sampler.MaxAnisotropy = 0;
-	sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-	sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-	sampler.MinLOD = 0.0f;
-	sampler.MaxLOD = D3D12_FLOAT32_MAX;
-	sampler.ShaderRegister = 0;
-	sampler.RegisterSpace = 0;
-	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	// --  Load texture data from a file -- //
 	{
@@ -522,6 +479,49 @@ bool InitD3D() {
 		srvDesc.Texture2D.MipLevels = 1;
 		device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 	}
+	
+	// second table
+	D3D12_DESCRIPTOR_RANGE secondTableRanges[1];
+	secondTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	secondTableRanges[0].NumDescriptors = 1;
+	secondTableRanges[0].BaseShaderRegister = 0;
+	secondTableRanges[0].RegisterSpace = 1;
+	secondTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	//Create a descriptor table
+	D3D12_ROOT_DESCRIPTOR_TABLE secondTable;
+	secondTable.NumDescriptorRanges = _countof(secondTableRanges);
+	secondTable.pDescriptorRanges = &secondTableRanges[0];
+
+	D3D12_ROOT_PARAMETER rootParameters[3];
+	//Parameter for the constant buffer
+	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[0].Descriptor = rootCBVDescriptor;
+	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+	//Parameter for descriptor table
+	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[1].DescriptorTable = descriptorTable;
+	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	//Parameter for second descriptor table
+	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[2].DescriptorTable = secondTable;
+	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	//Create static sampler
+	D3D12_STATIC_SAMPLER_DESC sampler = {};
+	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+	sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+	sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+	sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+	sampler.MipLODBias = 0;
+	sampler.MaxAnisotropy = 0;
+	sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+	sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+	sampler.MinLOD = 0.0f;
+	sampler.MaxLOD = D3D12_FLOAT32_MAX;
+	sampler.ShaderRegister = 0;
+	sampler.RegisterSpace = 0;
+	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	// --  Load second texture data from a file -- //
 	{
