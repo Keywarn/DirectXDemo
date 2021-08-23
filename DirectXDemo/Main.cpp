@@ -464,7 +464,7 @@ bool InitD3D() {
 
 		//Create descriptor heap that will store srv
 		D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-		heapDesc.NumDescriptors = 1;
+		heapDesc.NumDescriptors = 2;
 		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		hr = device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&mainDescriptorHeap));
@@ -477,7 +477,8 @@ bool InitD3D() {
 		srvDesc.Format = textureDesc.Format;
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = 1;
-		device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handle(mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), 0, device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+		device->CreateShaderResourceView(textureBuffer, &srvDesc, handle);
 	}
 	
 	// second table
@@ -534,21 +535,6 @@ bool InitD3D() {
 			Running = false;
 			return false;
 		}
-
-		hr = device->CreateCommittedResource(
-			&defaultHeapProp,
-			D3D12_HEAP_FLAG_NONE,
-			&texture2Desc,
-			D3D12_RESOURCE_STATE_COPY_DEST,
-			nullptr,
-			IID_PPV_ARGS(&texture2Buffer));
-		if (FAILED(hr)) {
-			Running = false;
-			return false;
-		}
-		texture2Buffer->SetName(L"Texture 2 Buffer Resource Heap");
-
-		//Create upload heap for texture
 		UINT64 texture2UploadBufferSize;
 		device->GetCopyableFootprints(&texture2Desc, 0, 1, 0, nullptr, nullptr, nullptr, &texture2UploadBufferSize);
 		CD3DX12_RESOURCE_DESC tex2UploadHeapBuffer = CD3DX12_RESOURCE_DESC::Buffer(texture2UploadBufferSize);
@@ -565,6 +551,19 @@ bool InitD3D() {
 		}
 		texture2BufferUploadHeap->SetName(L"Texture 2 Buffer Upload Resource Heap");
 
+		hr = device->CreateCommittedResource(
+			&defaultHeapProp,
+			D3D12_HEAP_FLAG_NONE,
+			&texture2Desc,
+			D3D12_RESOURCE_STATE_COPY_DEST,
+			nullptr,
+			IID_PPV_ARGS(&texture2Buffer));
+		if (FAILED(hr)) {
+			Running = false;
+			return false;
+		}
+		texture2Buffer->SetName(L"Texture 2 Buffer Resource Heap");
+
 		//Store texture in the upload buffer to be added onto the heap
 		D3D12_SUBRESOURCE_DATA texture2Data = {};
 		texture2Data.pData = &image2Data[0];
@@ -574,22 +573,14 @@ bool InitD3D() {
 		UpdateSubresources(commandList, texture2Buffer, texture2BufferUploadHeap, 0, 0, 1, &texture2Data);
 		commandList->ResourceBarrier(1, &texture2Barrier);
 
-		//Create descriptor heap that will store srv
-		D3D12_DESCRIPTOR_HEAP_DESC heap2Desc = {};
-		heap2Desc.NumDescriptors = 1;
-		heap2Desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		heap2Desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		hr = device->CreateDescriptorHeap(&heap2Desc, IID_PPV_ARGS(&mainDescriptorHeap));
-		if (FAILED(hr)) {
-			Running = false;
-		}
 		//Shader Resource View (points to texture and describe it)
 		D3D12_SHADER_RESOURCE_VIEW_DESC srv2Desc = {};
 		srv2Desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srv2Desc.Format = texture2Desc.Format;
 		srv2Desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 		srv2Desc.Texture2D.MipLevels = 1;
-		device->CreateShaderResourceView(texture2Buffer, &srv2Desc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handle(mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), 1, device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+		device->CreateShaderResourceView(texture2Buffer, &srv2Desc,handle);
 	}
 
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
