@@ -122,6 +122,10 @@ ID3D12DescriptorHeap* mainDescriptorHeap;
 ID3D12Resource* textureBufferUploadHeap;
 BYTE* imageData;
 
+ID3D12Resource* texture2Buffer;
+ID3D12Resource* texture2BufferUploadHeap;
+BYTE* image2Data;
+
 //Timing stuff
 Timer timer;
 
