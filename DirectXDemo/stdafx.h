@@ -49,6 +49,23 @@ struct ConstantBufferPerObject {
 	XMFLOAT4X4 wvpMat;
 };
 
+struct Light {
+	Light() {
+		ZeroMemory(this, sizeof(Light));
+	}
+	XMFLOAT3 dir;
+	float pad;
+	XMFLOAT4 ambient;
+	XMFLOAT4 diffuse;
+};
+
+struct cbPerFrame {
+	Light light;
+};
+
+Light light;
+cbPerFrame constBuffPerFrame;
+
 //Window data
 HWND hwnd = NULL;
 LPCTSTR WindowName = L"DirectX12DemoApp";
@@ -131,6 +148,7 @@ Timer timer;
 
 const CD3DX12_HEAP_PROPERTIES defaultHeapProp(D3D12_HEAP_TYPE_DEFAULT);
 const CD3DX12_HEAP_PROPERTIES uploadHeapProp(D3D12_HEAP_TYPE_UPLOAD);
+
 
 
 
