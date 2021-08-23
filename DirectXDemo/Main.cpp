@@ -407,9 +407,9 @@ bool InitD3D() {
 
 
 	//Create a descriptor table
-	D3D12_ROOT_DESCRIPTOR_TABLE secondTable;
-	secondTable.NumDescriptorRanges = _countof(descriptorTableRanges);
-	secondTable.pDescriptorRanges = &descriptorTableRanges[0];
+	D3D12_ROOT_DESCRIPTOR_TABLE descriptorTable;
+	descriptorTable.NumDescriptorRanges = _countof(descriptorTableRanges);
+	descriptorTable.pDescriptorRanges = &descriptorTableRanges[0];
 	
 	// second table
 	D3D12_DESCRIPTOR_RANGE secondTableRanges[1];
@@ -420,9 +420,9 @@ bool InitD3D() {
 	secondTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	//Create a descriptor table
-	D3D12_ROOT_DESCRIPTOR_TABLE descriptorTable;
-	descriptorTable.NumDescriptorRanges = _countof(secondTableRanges);
-	descriptorTable.pDescriptorRanges = &secondTableRanges[0];
+	D3D12_ROOT_DESCRIPTOR_TABLE secondTable;
+	secondTable.NumDescriptorRanges = _countof(secondTableRanges);
+	secondTable.pDescriptorRanges = &secondTableRanges[0];
 
 	D3D12_ROOT_PARAMETER rootParameters[3];
 	//Parameter for the constant buffer
