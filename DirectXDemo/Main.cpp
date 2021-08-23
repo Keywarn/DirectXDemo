@@ -1218,7 +1218,9 @@ void UpdatePipeline() {
 	commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeaps[frameIndex]->GetGPUVirtualAddress());
 	commandList->DrawIndexedInstanced(numCubeIndices, 1, 0, 0, 0);
 
-	commandList->SetGraphicsRootDescriptorTable(2, mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	CD3DX12_GPU_DESCRIPTOR_HANDLE handle(mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 1, device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	commandList->SetGraphicsRootDescriptorTable(1, handle);
+	
 	//Cube2
 	commandList->SetGraphicsRootConstantBufferView(0, constantBufferUploadHeaps[frameIndex]->GetGPUVirtualAddress() + ConstantBufferPerObjectAlignedSize);
 	commandList->DrawIndexedInstanced(numCubeIndices, 1, 0, 0, 0);
