@@ -398,25 +398,33 @@ bool InitD3D() {
 	rootCBVDescriptor.ShaderRegister = 0;
 
 	//Create descriptor range to hold the descriptor table
-	D3D12_DESCRIPTOR_RANGE descriptorTableRanges[2];
+	D3D12_DESCRIPTOR_RANGE descriptorTableRanges[1];
 	descriptorTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	descriptorTableRanges[0].NumDescriptors = 1;
 	descriptorTableRanges[0].BaseShaderRegister = 0;
 	descriptorTableRanges[0].RegisterSpace = 0;
 	descriptorTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	descriptorTableRanges[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	descriptorTableRanges[1].NumDescriptors = 1;
-	descriptorTableRanges[1].BaseShaderRegister = 0;
-	descriptorTableRanges[1].RegisterSpace = 1;
-	descriptorTableRanges[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	//Create a descriptor table
+	D3D12_ROOT_DESCRIPTOR_TABLE secondTable;
+	secondTable.NumDescriptorRanges = _countof(descriptorTableRanges);
+	secondTable.pDescriptorRanges = &descriptorTableRanges[0];
+	
+	// second table
+	D3D12_DESCRIPTOR_RANGE secondTableRanges[1];
+	secondTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	secondTableRanges[0].NumDescriptors = 1;
+	secondTableRanges[0].BaseShaderRegister = 0;
+	secondTableRanges[0].RegisterSpace = 1;
+	secondTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	//Create a descriptor table
 	D3D12_ROOT_DESCRIPTOR_TABLE descriptorTable;
-	descriptorTable.NumDescriptorRanges = _countof(descriptorTableRanges);
-	descriptorTable.pDescriptorRanges = &descriptorTableRanges[0];
+	descriptorTable.NumDescriptorRanges = _countof(secondTableRanges);
+	descriptorTable.pDescriptorRanges = &secondTableRanges[0];
 
-	D3D12_ROOT_PARAMETER rootParameters[2];
+	D3D12_ROOT_PARAMETER rootParameters[3];
 	//Parameter for the constant buffer
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[0].Descriptor = rootCBVDescriptor;
@@ -425,6 +433,10 @@ bool InitD3D() {
 	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParameters[1].DescriptorTable = descriptorTable;
 	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	//Parameter for second descriptor table
+	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[2].DescriptorTable = secondTable;
+	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	//Create static sampler
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -441,6 +453,73 @@ bool InitD3D() {
 	sampler.ShaderRegister = 0;
 	sampler.RegisterSpace = 0;
 	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	// --  Load texture data from a file -- //
+	D3D12_RESOURCE_DESC textureDesc;
+	int imageBytesPerRow;
+	BYTE* imageData;
+	int imageSize = LoadImageDataFromFile(&imageData, textureDesc, L"texture.jpg", imageBytesPerRow);
+
+	if (imageSize <= 0) {
+		Running = false;
+		return false;
+	}
+
+	hr = device->CreateCommittedResource(
+		&defaultHeapProp,
+		D3D12_HEAP_FLAG_NONE,
+		&textureDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&textureBuffer));
+	if (FAILED(hr)) {
+		Running = false;
+		return false;
+	}
+	textureBuffer->SetName(L"Texture Buffer Resource Heap");
+
+	//Create upload heap for texture
+	UINT64 textureUploadBufferSize;
+	device->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &textureUploadBufferSize);
+	CD3DX12_RESOURCE_DESC texUploadHeapBuffer = CD3DX12_RESOURCE_DESC::Buffer(textureUploadBufferSize);
+	hr = device->CreateCommittedResource(
+		&uploadHeapProp,
+		D3D12_HEAP_FLAG_NONE,
+		&texUploadHeapBuffer,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&textureBufferUploadHeap));
+	if (FAILED(hr)) {
+		Running = false;
+		return false;
+	}
+	textureBufferUploadHeap->SetName(L"Texture Buffer Upload Resource Heap");
+
+	//Store texture in the upload buffer to be added onto the heap
+	D3D12_SUBRESOURCE_DATA textureData = {};
+	textureData.pData = &imageData[0];
+	textureData.RowPitch = imageBytesPerRow;
+	textureData.SlicePitch = imageBytesPerRow * textureDesc.Height;
+	CD3DX12_RESOURCE_BARRIER textureBarrier = CD3DX12_RESOURCE_BARRIER::Transition(textureBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	UpdateSubresources(commandList, textureBuffer, textureBufferUploadHeap, 0, 0, 1, &textureData);
+	commandList->ResourceBarrier(1, &textureBarrier);
+
+	//Create descriptor heap that will store srv
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+	heapDesc.NumDescriptors = 1;
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	hr = device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&mainDescriptorHeap));
+	if (FAILED(hr)) {
+		Running = false;
+	}
+	//Shader Resource View (points to texture and describe it)
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
 	rootSignatureDesc.Init(
@@ -571,7 +650,7 @@ bool InitD3D() {
 
 	//Create default heap, memory on GPU
 	//Only accessible by GPU, to add data, upload using upload heap
-	const CD3DX12_HEAP_PROPERTIES defaultHeapProp(D3D12_HEAP_TYPE_DEFAULT);
+	
 	const CD3DX12_RESOURCE_DESC vHeapDesc = CD3DX12_RESOURCE_DESC::Buffer(vBufferSize);
 	device->CreateCommittedResource(
 		&defaultHeapProp,
@@ -584,7 +663,6 @@ bool InitD3D() {
 	vertexBuffer->SetName(L"Vertex Buffer Resource Heap");
 
 	//Create upload heap
-	const CD3DX12_HEAP_PROPERTIES uploadHeapProp(D3D12_HEAP_TYPE_UPLOAD);
 	ID3D12Resource* vBufferUploadHeap;
 	device->CreateCommittedResource(
 		&uploadHeapProp,
@@ -729,74 +807,6 @@ bool InitD3D() {
 		memcpy(cbvGPUAddress[i], &cbPerObject, sizeof(cbPerObject)); //cube1 buffer data
 		memcpy(cbvGPUAddress[i] + ConstantBufferPerObjectAlignedSize, &cbPerObject, sizeof(cbPerObject)); //cube2 data but make sure it is aligned
 	}
-
-	// --  Load texture data from a file -- //
-	D3D12_RESOURCE_DESC textureDesc;
-	int imageBytesPerRow;
-	BYTE* imageData;
-	int imageSize = LoadImageDataFromFile(&imageData, textureDesc, L"texture.jpg", imageBytesPerRow);
-
-	if (imageSize <= 0) {
-		Running = false;
-		return false;
-	}
-
-	hr = device->CreateCommittedResource(
-		&defaultHeapProp,
-		D3D12_HEAP_FLAG_NONE,
-		&textureDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		IID_PPV_ARGS(&textureBuffer));
-	if (FAILED(hr)) {
-		Running = false;
-		return false;
-	}
-	textureBuffer->SetName(L"Texture Buffer Resource Heap");
-
-	//Create upload heap for texture
-	UINT64 textureUploadBufferSize;
-	device->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &textureUploadBufferSize);
-	CD3DX12_RESOURCE_DESC texUploadHeapBuffer = CD3DX12_RESOURCE_DESC::Buffer(textureUploadBufferSize);
-	hr = device->CreateCommittedResource(
-		&uploadHeapProp,
-		D3D12_HEAP_FLAG_NONE,
-		&texUploadHeapBuffer,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&textureBufferUploadHeap));
-	if (FAILED(hr)) {
-		Running = false;
-		return false;
-	}
-	textureBufferUploadHeap->SetName(L"Texture Buffer Upload Resource Heap");
-
-	//Store texture in the upload buffer to be added onto the heap
-	D3D12_SUBRESOURCE_DATA textureData = {};
-	textureData.pData = &imageData[0];
-	textureData.RowPitch = imageBytesPerRow;
-	textureData.SlicePitch = imageBytesPerRow * textureDesc.Height;
-	CD3DX12_RESOURCE_BARRIER textureBarrier = CD3DX12_RESOURCE_BARRIER::Transition(textureBuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	UpdateSubresources(commandList, textureBuffer, textureBufferUploadHeap, 0, 0, 1, &textureData);
-	commandList->ResourceBarrier(1, &textureBarrier);
-
-	//Create descriptor heap that will store srv
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	heapDesc.NumDescriptors = 1;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	hr = device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&mainDescriptorHeap));
-	if (FAILED(hr)) {
-		Running = false;
-	}
-
-	//Shader Resource View (points to texture and describe it)
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = textureDesc.Format;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = 1;
-	device->CreateShaderResourceView(textureBuffer, &srvDesc, mainDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
 	// -- Execute command list to upload inital assets -- //
 	commandList->Close();
@@ -1133,7 +1143,7 @@ void UpdatePipeline() {
 
 	ID3D12DescriptorHeap* descriptorHeaps[] = { mainDescriptorHeap };
 	commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-	commandList->SetGraphicsRootDescriptorTable(1, mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	commandList->SetGraphicsRootDescriptorTable(2, mainDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
 	//Draw Triangle
 	commandList->RSSetViewports(1, &viewport);

@@ -125,6 +125,9 @@ BYTE* imageData;
 //Timing stuff
 Timer timer;
 
+const CD3DX12_HEAP_PROPERTIES defaultHeapProp(D3D12_HEAP_TYPE_DEFAULT);
+const CD3DX12_HEAP_PROPERTIES uploadHeapProp(D3D12_HEAP_TYPE_UPLOAD);
+
 
 
 //Initialize direct3d
