@@ -636,7 +636,8 @@ bool InitD3D() {
 	// -- Create input layout -- //
 	D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0  },
-		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
 	};
 	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
 
@@ -670,40 +671,40 @@ bool InitD3D() {
 	// -- Define the shape -- //
 	Vertex vList[] = {
 		// front face
-		{ -0.5f,  0.5f, -0.5f, 0.0f, 0.0f },
-		{  0.5f, -0.5f, -0.5f, 1.0f, 1.0f },
-		{ -0.5f, -0.5f, -0.5f, 0.0f, 1.0f },
-		{  0.5f,  0.5f, -0.5f, 1.0f, 0.0f },
+		Vertex(-0.5f,  0.5f, -0.5f, 0.0f, 0.0f,-1.0f,  1.0f, -1.0f),
+		Vertex( 0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f),
+		Vertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,-1.0f, -1.0f, -1.0f),
+		Vertex( 0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 1.0f,  1.0f, -1.0f),
 
 		// right side face
-		{  0.5f, -0.5f, -0.5f, 0.0f, 1.0f },
-		{  0.5f,  0.5f,  0.5f, 1.0f, 0.0f },
-		{  0.5f, -0.5f,  0.5f, 1.0f, 1.0f },
-		{  0.5f,  0.5f, -0.5f, 0.0f, 0.0f },
+		Vertex(0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, -1.0f, -1.0f),
+		Vertex(0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 1.0f,  1.0f,  1.0f),
+		Vertex(0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 1.0f, -1.0f,  1.0f),
+		Vertex(0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 1.0f,  1.0f, -1.0f),
 
 		// left side face
-		{ -0.5f,  0.5f,  0.5f, 0.0f, 0.0f },
-		{ -0.5f, -0.5f, -0.5f, 1.0f, 1.0f },
-		{ -0.5f, -0.5f,  0.5f, 0.0f, 1.0f },
-		{ -0.5f,  0.5f, -0.5f, 1.0f, 0.0f },
+		Vertex(-0.5f,  0.5f,  0.5f, 0.0f, 0.0f,-1.0f,  1.0f,  1.0f),
+		Vertex(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f,-1.0f, -1.0f, -1.0f),
+		Vertex(-0.5f, -0.5f,  0.5f, 0.0f, 1.0f,-1.0f, -1.0f,  1.0f),
+		Vertex(-0.5f,  0.5f, -0.5f, 1.0f, 0.0f,-1.0f,  1.0f, -1.0f),
 
 		// back face
-		{  0.5f,  0.5f,  0.5f, 0.0f, 0.0f },
-		{ -0.5f, -0.5f,  0.5f, 1.0f, 1.0f },
-		{  0.5f, -0.5f,  0.5f, 0.0f, 1.0f },
-		{ -0.5f,  0.5f,  0.5f, 1.0f, 0.0f },
+		Vertex( 0.5f,  0.5f, 0.5f, 0.0f, 0.0f, 1.0f,  1.0f, 1.0f),
+		Vertex(-0.5f, -0.5f, 0.5f, 1.0f, 1.0f,-1.0f, -1.0f, 1.0f),
+		Vertex( 0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f),
+		Vertex(-0.5f,  0.5f, 0.5f, 1.0f, 0.0f,-1.0f,  1.0f, 1.0f),
 
 		// top face
-		{ -0.5f,  0.5f, -0.5f, 0.0f, 1.0f },
-		{  0.5f,  0.5f,  0.5f, 1.0f, 0.0f },
-		{  0.5f,  0.5f, -0.5f, 1.0f, 1.0f },
-		{ -0.5f,  0.5f,  0.5f, 0.0f, 0.0f },
+		Vertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,-1.0f, 1.0f, -1.0f),
+		Vertex( 0.5f, 0.5f,  0.5f, 1.0f, 0.0f, 1.0f, 1.0f,  1.0f),
+		Vertex( 0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f),
+		Vertex(-0.5f, 0.5f,  0.5f, 0.0f, 0.0f,-1.0f, 1.0f,  1.0f),
 
 		// bottom face
-		{  0.5f, -0.5f,  0.5f, 0.0f, 0.0f },
-		{ -0.5f, -0.5f, -0.5f, 1.0f, 1.0f },
-		{  0.5f, -0.5f, -0.5f, 0.0f, 1.0f },
-		{ -0.5f, -0.5f,  0.5f, 1.0f, 0.0f },
+		Vertex( 0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, -1.0f,  1.0f),
+		Vertex(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f,-1.0f, -1.0f, -1.0f),
+		Vertex( 0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, -1.0f, -1.0f),
+		Vertex(-0.5f, -0.5f,  0.5f, 1.0f, 0.0f,-1.0f, -1.0f,  1.0f),
 	};
 
 	// -- Create Vertex and Index Buffer -- //
@@ -1033,7 +1034,6 @@ void Cleanup() {
 	SAFE_RELEASE(indexBuffer);
 	SAFE_RELEASE(depthStencilBuffer);
 	SAFE_RELEASE(dsDescriptorHeap);
-
 }
 
 void mainloop() {

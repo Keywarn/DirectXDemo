@@ -40,9 +40,13 @@ struct Timer {
 };
 
 struct Vertex {
-	Vertex(float x, float y, float z, float u, float v) : pos(x, y, z), texCoord(u,v) {}
+	Vertex(
+		float x, float y, float z,
+		float u, float v,
+		float nx, float ny, float nz) : pos(x, y, z), texCoord(u,v), normal(nx, ny ,nz) {}
 	XMFLOAT3 pos;
 	XMFLOAT2 texCoord;
+	XMFLOAT3 normal;
 };
 
 struct ConstantBufferPerObject {
